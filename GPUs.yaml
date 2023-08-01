@@ -1,0 +1,26 @@
+---
+- name: Configure compute instances
+  hosts: gpu_servers
+  
+  tasks:
+
+    - name: Set hostname
+      hostname:
+        name: "{{ inventory_hostname }}"
+
+    - name: Set timezone
+      community.general.timezone:
+        name: Europe/London
+
+    - name: Install NVIDIA driver
+      ansible.builtin.yum:
+        name:
+          - kmod-nvidia
+          - xorg-x11-drv-nvidia-cuda
+        state: latest
+
+    - name: Install PyTorch
+      ansible.builtin.pip:
+        name:
+          - torch
+          - torchvision
