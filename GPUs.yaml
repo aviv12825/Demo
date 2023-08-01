@@ -1,6 +1,6 @@
 ---
 - name: Configure compute instances
-  hosts: gpu_servers
+  hosts: GPUs
   
   tasks:
 
