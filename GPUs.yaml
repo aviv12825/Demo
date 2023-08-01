@@ -1,26 +1,49 @@
+
 ---
 - name: Configure compute instances
   hosts: GPUs
-  
-  tasks:
+  become: true
 
+  tasks:
     - name: Set hostname
-      hostname:
-        name: "{{ inventory_hostname }}"
+      shell: hostnamectl set-hostname BM.GPU3.8
 
     - name: Set timezone
-      community.general.timezone:
-        name: Europe/London
+      shell: timedatectl set-timezone Europe/London
 
-    - name: Install NVIDIA driver
-      ansible.builtin.yum:
-        name:
-          - kmod-nvidia
-          - xorg-x11-drv-nvidia-cuda
-        state: latest
+    - name: Install and upgrade pip
+      pip:
+        name: pip
+        extra_args: --upgrade
+        executable: pip3
 
     - name: Install PyTorch
-      ansible.builtin.pip:
+      pip:
         name:
           - torch
           - torchvision
+          - torchaudio
+        executable: pip3
+        extra_args: --extra-index-url https://download.pytorch.org/whl/cpu
+
+    - name: Add Nvidia repo key
+      rpm_key:
+        key: https://developer.download.nvidia.com/compute/cuda/repos/rhel7/x86_64/7fa2af80.pub
+
+    - name: Add Nvidia repo
+      yum_repository:
+        name: nvidia
+        description: Nvidia repo
+        baseurl: https://developer.download.nvidia.com/compute/cuda/repos/rhel7/x86_64
+        enabled: yes
+        gpgcheck: yes
+
+    - name: Install latest kernel headers
+      yum:
+        name: kernel-devel
+        state: latest
+
+    - name: Install CUDA toolkit
+      ansible.builtin.yum:
+        name: cuda-toolkit-10-0
+        state: present
